@@ -4,7 +4,7 @@
 
 ***Type-preserving JSON for JavaScript: readable on the wire, safe on untrusted input***
 
-[npm](https://www.npmjs.com/package/@opentf/serialize) | [JSR](https://jsr.io/@opentf/serialize) | [Wire format](#wire-format)
+[npm](https://www.npmjs.com/package/@opentf/serialize) | [Wire format](#wire-format)
 
 </div>
 
@@ -175,7 +175,7 @@ pnpm add @opentf/serialize
 ```
 
 ```sh
-npm install @opentf/serialize   # or: bun add, deno add jsr:@opentf/serialize
+npm install @opentf/serialize   # or: bun add @opentf/serialize
 ```
 
 ## Supported values
