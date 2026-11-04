@@ -1,0 +1,57 @@
+{
+  "name": "@opentf/serialize",
+  "description": "Type-preserving JavaScript serialization: Date, Map, Set, typed arrays, BigInt, Temporal, cycles and more, over plain JSON.",
+  "keywords": [
+    "serialize",
+    "deserialize",
+    "json",
+    "stringify",
+    "parse",
+    "superjson",
+    "bigint",
+    "map",
+    "set",
+    "temporal",
+    "circular"
+  ],
+  "version": "0.1.0",
+  "author": {
+    "name": "Thanga Ganapathy",
+    "email": "ganapathy888@gmail.com",
+    "url": "https://thanga-ganapathy.github.io"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Open-Tech-Foundation/js-serialize.git"
+  },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "packageManager": "pnpm@12.5.1",
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
+    "typescript": "^7.0.2"
+  }
+}

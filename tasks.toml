@@ -1,0 +1,29 @@
+# Repository task entry point — run with `tsr <task>`.
+
+[tasks.test]
+# Run the suite against src/ with the ES development runtime.
+run = "esdev test"
+
+[tasks.build]
+run = "esdev build --target=library"
+
+[tasks."test:dist"]
+# Run the same suite against the built dist/.
+run = "esdev test"
+env = { TEST_DIST = "true" }
+deps = ["build"]
+
+[tasks.type-check]
+run = "esdev typecheck"
+
+[tasks.lint]
+run = "biome lint"
+
+[tasks.fmt]
+run = "biome format --write"
+
+[tasks."fmt:check"]
+run = "biome check"
+
+[tasks.ci]
+deps = ["build", "test", "test:dist", "type-check", "lint", "fmt:check"]
