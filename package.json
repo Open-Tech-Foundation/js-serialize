@@ -52,6 +52,10 @@
   "packageManager": "pnpm@12.5.1",
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
+    "@ungap/structured-clone": "^1.4.0",
+    "devalue": "^6.0.3",
+    "seroval": "^1.7.7",
+    "superjson": "^2.2.6",
     "typescript": "^7.0.2"
   }
 }

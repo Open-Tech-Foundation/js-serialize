@@ -1,0 +1,583 @@
+{
+  "meta": {
+    "generatedAt": "2026-11-04",
+    "runtime": "ES-Runtime/0.46.0",
+    "cpu": "Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz",
+    "threads": 12,
+    "package": "@opentf/serialize",
+    "versions": {
+      "@opentf/serialize": "0.1.0",
+      "superjson": "2.2.6",
+      "devalue": "6.0.3",
+      "seroval": "1.7.7",
+      "@ungap/structured-clone": "1.4.0"
+    },
+    "regenerate": "tsr bench:readme"
+  },
+  "libraries": [
+    "@opentf/serialize",
+    "superjson",
+    "devalue",
+    "seroval",
+    "@ungap/structured-clone"
+  ],
+  "fidelity": {
+    "cases": [
+      "Plain nested object",
+      "Date",
+      "Invalid Date",
+      "RegExp",
+      "Map",
+      "Set",
+      "BigInt",
+      "Int8Array",
+      "Float64Array [NaN, -0, ∞]",
+      "BigInt64Array",
+      "ArrayBuffer",
+      "DataView",
+      "Error + custom prop",
+      "Boxed Number",
+      "Boxed String",
+      "undefined",
+      "NaN",
+      "-0",
+      "Infinity",
+      "URL",
+      "Temporal.PlainDate",
+      "Temporal.ZonedDateTime",
+      "Shared reference",
+      "Circular object",
+      "Circular array",
+      "Cycle through a Map",
+      "Sparse array",
+      "Own __proto__ key"
+    ],
+    "rows": [
+      {
+        "lib": "@opentf/serialize",
+        "cells": [
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "throws",
+          "fail",
+          "pass"
+        ],
+        "score": 26
+      },
+      {
+        "lib": "superjson",
+        "cells": [
+          "pass",
+          "pass",
+          "fail",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "fail",
+          "throws",
+          "fail",
+          "fail",
+          "fail",
+          "fail",
+          "fail",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "fail",
+          "fail",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "fail",
+          "throws"
+        ],
+        "score": 16
+      },
+      {
+        "lib": "devalue",
+        "cells": [
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "throws",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "throws"
+        ],
+        "score": 26
+      },
+      {
+        "lib": "seroval",
+        "cells": [
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "throws",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass"
+        ],
+        "score": 27
+      },
+      {
+        "lib": "@ungap/structured-clone",
+        "cells": [
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "fail",
+          "throws",
+          "pass",
+          "pass",
+          "fail",
+          "pass",
+          "pass",
+          "pass",
+          "fail",
+          "pass",
+          "fail",
+          "fail",
+          "fail",
+          "fail",
+          "pass",
+          "pass",
+          "pass",
+          "pass",
+          "fail",
+          "pass"
+        ],
+        "score": 19
+      }
+    ]
+  },
+  "malformed": {
+    "cases": [
+      "Empty object `{}`",
+      "Foreign object `{\"x\":1}`",
+      "Bare number `42`"
+    ],
+    "rows": [
+      {
+        "lib": "@opentf/serialize",
+        "cells": [
+          "throws",
+          "throws",
+          "throws"
+        ]
+      },
+      {
+        "lib": "superjson",
+        "cells": [
+          "returns undefined",
+          "returns undefined",
+          "returns undefined"
+        ]
+      },
+      {
+        "lib": "devalue",
+        "cells": [
+          "throws",
+          "throws",
+          "throws"
+        ]
+      },
+      {
+        "lib": "seroval",
+        "cells": [
+          "throws",
+          "throws",
+          "throws"
+        ]
+      },
+      {
+        "lib": "@ungap/structured-clone",
+        "cells": [
+          "throws",
+          "throws",
+          "throws"
+        ]
+      }
+    ]
+  },
+  "size": {
+    "cases": [
+      "Flat object",
+      "Mixed native types",
+      "Typed array (8)",
+      "Nested record",
+      "Tricky numbers",
+      "Circular graph"
+    ],
+    "rows": [
+      {
+        "lib": "@opentf/serialize",
+        "bytes": [
+          41,
+          171,
+          71,
+          192,
+          132,
+          67
+        ]
+      },
+      {
+        "lib": "superjson",
+        "bytes": [
+          44,
+          153,
+          96,
+          192,
+          115,
+          83
+        ]
+      },
+      {
+        "lib": "devalue",
+        "bytes": [
+          43,
+          108,
+          58,
+          133,
+          24,
+          25
+        ]
+      },
+      {
+        "lib": "seroval",
+        "bytes": [
+          126,
+          268,
+          171,
+          270,
+          113,
+          104
+        ]
+      },
+      {
+        "lib": "@ungap/structured-clone",
+        "bytes": [
+          83,
+          146,
+          55,
+          182,
+          74,
+          49
+        ]
+      }
+    ]
+  },
+  "speed": [
+    {
+      "scenario": "Typed record",
+      "ops": [
+        {
+          "op": "stringify",
+          "rows": [
+            {
+              "lib": "@opentf/serialize",
+              "opsPerSec": 126286,
+              "meanMs": 0.007918535215256846,
+              "rme": 0.55
+            },
+            {
+              "lib": "superjson",
+              "opsPerSec": 53160,
+              "meanMs": 0.01881127265861042,
+              "rme": 0.76
+            },
+            {
+              "lib": "devalue",
+              "opsPerSec": 180737,
+              "meanMs": 0.0055329021903323455,
+              "rme": 0.69
+            },
+            {
+              "lib": "seroval",
+              "opsPerSec": 192620,
+              "meanMs": 0.005191571469033233,
+              "rme": 0.84
+            },
+            {
+              "lib": "@ungap/structured-clone",
+              "opsPerSec": 163425,
+              "meanMs": 0.0061190167107251356,
+              "rme": 0.72
+            }
+          ]
+        },
+        {
+          "op": "parse",
+          "rows": [
+            {
+              "lib": "@opentf/serialize",
+              "opsPerSec": 160250,
+              "meanMs": 0.006240258755201177,
+              "rme": 0.35
+            },
+            {
+              "lib": "superjson",
+              "opsPerSec": 168922,
+              "meanMs": 0.0059199029126214605,
+              "rme": 0.41
+            },
+            {
+              "lib": "devalue",
+              "opsPerSec": 241633,
+              "meanMs": 0.004138512049237106,
+              "rme": 0.52
+            },
+            {
+              "lib": "seroval",
+              "opsPerSec": 111267,
+              "meanMs": 0.008987387309292619,
+              "rme": 0.46
+            },
+            {
+              "lib": "@ungap/structured-clone",
+              "opsPerSec": 159091,
+              "meanMs": 0.0062856926144244755,
+              "rme": 0.45
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "1,000 plain rows",
+      "ops": [
+        {
+          "op": "stringify",
+          "rows": [
+            {
+              "lib": "@opentf/serialize",
+              "opsPerSec": 1404,
+              "meanMs": 0.712266666666718,
+              "rme": 0.8
+            },
+            {
+              "lib": "superjson",
+              "opsPerSec": 216,
+              "meanMs": 4.6226666666666985,
+              "rme": 0.35
+            },
+            {
+              "lib": "devalue",
+              "opsPerSec": 597,
+              "meanMs": 1.6752807017543858,
+              "rme": 0.79
+            },
+            {
+              "lib": "seroval",
+              "opsPerSec": 773,
+              "meanMs": 1.2929122807017879,
+              "rme": 0.38
+            },
+            {
+              "lib": "@ungap/structured-clone",
+              "opsPerSec": 627,
+              "meanMs": 1.5954140350877104,
+              "rme": 0.9
+            },
+            {
+              "lib": "JSON",
+              "opsPerSec": 6201,
+              "meanMs": 0.16127280701753238,
+              "rme": 0.31
+            }
+          ]
+        },
+        {
+          "op": "parse",
+          "rows": [
+            {
+              "lib": "@opentf/serialize",
+              "opsPerSec": 1489,
+              "meanMs": 0.6716457399102937,
+              "rme": 1.09
+            },
+            {
+              "lib": "superjson",
+              "opsPerSec": 3096,
+              "meanMs": 0.3230414798206444,
+              "rme": 0.77
+            },
+            {
+              "lib": "devalue",
+              "opsPerSec": 1075,
+              "meanMs": 0.9300941704035754,
+              "rme": 0.49
+            },
+            {
+              "lib": "seroval",
+              "opsPerSec": 472,
+              "meanMs": 2.1172533632286914,
+              "rme": 0.31
+            },
+            {
+              "lib": "@ungap/structured-clone",
+              "opsPerSec": 584,
+              "meanMs": 1.713603139013473,
+              "rme": 0.56
+            },
+            {
+              "lib": "JSON",
+              "opsPerSec": 3080,
+              "meanMs": 0.32465582959639505,
+              "rme": 0.72
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "1,000 typed rows",
+      "ops": [
+        {
+          "op": "stringify",
+          "rows": [
+            {
+              "lib": "@opentf/serialize",
+              "opsPerSec": 409,
+              "meanMs": 2.4463237410072254,
+              "rme": 0.48
+            },
+            {
+              "lib": "superjson",
+              "opsPerSec": 113,
+              "meanMs": 8.846633093525107,
+              "rme": 0.82
+            },
+            {
+              "lib": "devalue",
+              "opsPerSec": 436,
+              "meanMs": 2.292762589928041,
+              "rme": 0.93
+            },
+            {
+              "lib": "seroval",
+              "opsPerSec": 517,
+              "meanMs": 1.9351870503596467,
+              "rme": 0.51
+            },
+            {
+              "lib": "@ungap/structured-clone",
+              "opsPerSec": 393,
+              "meanMs": 2.5440863309353214,
+              "rme": 0.87
+            }
+          ]
+        },
+        {
+          "op": "parse",
+          "rows": [
+            {
+              "lib": "@opentf/serialize",
+              "opsPerSec": 373,
+              "meanMs": 2.6805868544601115,
+              "rme": 1.44
+            },
+            {
+              "lib": "superjson",
+              "opsPerSec": 325,
+              "meanMs": 3.0805868544599786,
+              "rme": 1.46
+            },
+            {
+              "lib": "devalue",
+              "opsPerSec": 695,
+              "meanMs": 1.4395868544600836,
+              "rme": 1.31
+            },
+            {
+              "lib": "seroval",
+              "opsPerSec": 413,
+              "meanMs": 2.423647887323931,
+              "rme": 0.51
+            },
+            {
+              "lib": "@ungap/structured-clone",
+              "opsPerSec": 466,
+              "meanMs": 2.1452347417840607,
+              "rme": 1.88
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

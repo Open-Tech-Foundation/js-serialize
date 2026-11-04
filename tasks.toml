@@ -27,3 +27,12 @@ run = "biome check"
 
 [tasks.ci]
 deps = ["build", "test", "test:dist", "type-check", "lint", "fmt:check"]
+
+[tasks.bench]
+# Compare with the alternatives; writes benchmarks/results.json.
+run = "esdev bench"
+
+[tasks."bench:readme"]
+# Render benchmarks/results.json into README.md's Measured section.
+run = "esdev benchmarks/readme.ts"
+deps = ["bench"]
