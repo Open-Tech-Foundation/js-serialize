@@ -4,6 +4,8 @@ All notable changes to this package are documented here.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-04
+
 ### Added
 
 - `stringify` / `parse`: type-preserving JSON for `Date`, `RegExp`, `URL`, `Map`, `Set`,
