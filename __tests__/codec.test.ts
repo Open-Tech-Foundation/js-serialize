@@ -134,14 +134,11 @@ describe("stringify / parse round-trip", () => {
     expect(viaMap.m.get("k")).toBe(viaMap.o);
   });
 
-  test("throws on symbols, functions, class instances, cycles through Map", () => {
+  test("throws on symbols, functions, class instances", () => {
     expect(() => stringify(Symbol("s"))).toThrow();
     expect(() => stringify(() => 1)).toThrow();
     class Widget {}
     expect(() => stringify(new Widget())).toThrow();
-    const m = new Map<string, unknown>();
-    m.set("self", m);
-    expect(() => stringify(m)).toThrow();
   });
 });
 

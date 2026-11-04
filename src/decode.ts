@@ -12,6 +12,9 @@ import {
 
 type JsonObject = Record<string, unknown>;
 
+/** What a `hole` entry decodes to: never a value, only "leave this index empty". */
+const HOLE: unique symbol = Symbol("hole");
+
 export const isJsonObject = (x: unknown): x is JsonObject =>
   x !== null && typeof x === "object" && !Array.isArray(x);
 
@@ -43,8 +46,9 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
   }
   const refs: JsonObject = rawRefs ?? {};
   const cache = new Map<string, unknown>();
-  // Keys whose (non-plain) value is being built; meeting one again is a cycle
-  // the format cannot express (e.g. a Map containing itself), not a stack overflow.
+  // Keys whose leaf value (e.g. a boxed Number) is being built. Containers are
+  // cached as empty shells before their children, so only a leaf can meet
+  // itself again, and that input is a forged cycle, not a stack overflow.
   const building = new Set<string>();
 
   const enter = (depth: number): number => {
@@ -58,10 +62,13 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
     if (!ok) throw new SerializeError("INVALID_PAYLOAD", `"${t}" payload must be ${expected}`);
   };
 
-  const build = (t: string, v: unknown, depth: number): unknown => {
+  /** Builds entry `key`. Containers register their empty shell in `cache` first. */
+  const build = (key: string, t: string, v: unknown, depth: number): unknown => {
     switch (t) {
       case "undef":
         return undefined;
+      case "hole":
+        return HOLE;
       case "bigint":
         check(typeof v === "string", t, "a string");
         return BigInt(v as string);
@@ -103,12 +110,18 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
           "an array of [key, value] pairs",
         );
         const d = enter(depth);
-        return new Map((v as [unknown, unknown][]).map(([k, val]) => [node(k, d), node(val, d)]));
+        const map = new Map<unknown, unknown>();
+        cache.set(key, map);
+        for (const [k, val] of v as [unknown, unknown][]) map.set(node(k, d), node(val, d));
+        return map;
       }
       case "Set": {
         check(Array.isArray(v), t, "an array");
         const d = enter(depth);
-        return new Set((v as unknown[]).map((e) => node(e, d)));
+        const set = new Set<unknown>();
+        cache.set(key, set);
+        for (const e of v as unknown[]) set.add(node(e, d));
+        return set;
       }
       case "ArrayBuffer":
         check(typeof v === "string", t, "a base64 string");
@@ -117,7 +130,7 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
         check(typeof v === "string", t, "a base64 string");
         return new DataView(b64ToBytes(v as string).buffer);
       case "Error":
-        return buildError(v, depth);
+        return buildError(key, v, depth);
       case "Number": {
         const n = node(v, depth);
         check(typeof n === "number", t, "a number");
@@ -141,7 +154,7 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
     }
   };
 
-  const buildError = (v: unknown, depth: number): Error => {
+  const buildError = (key: string, v: unknown, depth: number): Error => {
     check(
       isJsonObject(v) &&
         typeof v.name === "string" &&
@@ -155,6 +168,7 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
     const e = new Ctor(message);
     if (e.name !== name) e.name = name;
     const d = enter(depth);
+    cache.set(key, e);
     for (const k of Object.keys(own)) setOwn(e, k, node(own[k], d));
     return e;
   };
@@ -194,10 +208,10 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
     if (t === "arr") {
       check(Array.isArray(v), t, "an array");
       const d = enter(depth);
-      const arr: unknown[] = [];
-      cache.set(key, arr);
       const src = v as unknown[];
-      for (let i = 0; i < src.length; i++) arr[i] = node(src[i], d);
+      const arr = new Array<unknown>(src.length);
+      cache.set(key, arr);
+      fill(arr, src, d);
       return arr;
     }
     if (t === "obj") {
@@ -216,7 +230,7 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
     building.add(key);
     let built: unknown;
     try {
-      built = build(t, v, depth);
+      built = build(key, t, v, depth);
     } catch (err) {
       if (err instanceof SerializeError) throw err;
       // Native constructors reject bad payloads with their own errors
@@ -233,14 +247,35 @@ export function createDecoder(rawRefs: unknown, options: ParseOptions = {}): Dec
     return built;
   };
 
+  /** Array elements: a `hole` token leaves the index empty, as in the source array. */
+  const fill = (arr: unknown[], src: unknown[], depth: number): void => {
+    for (let i = 0; i < src.length; i++) {
+      const e = item(src[i], depth);
+      if (e !== HOLE) arr[i] = e;
+    }
+  };
+
+  /** Any position that is not an array element: a hole there is forged input. */
   const node = (x: unknown, depth = 0): unknown => {
+    const v = item(x, depth);
+    if (v === HOLE) {
+      throw new SerializeError("INVALID_PAYLOAD", 'a "hole" can only be an array element');
+    }
+    return v;
+  };
+
+  const item = (x: unknown, depth: number): unknown => {
     if (typeof x === "string") {
       if (REF_TOKEN.test(x)) return resolve(x.slice(1), depth);
       return x.startsWith("@") ? x.slice(1) : x; // unescape
     }
     if (x === null || typeof x !== "object") return x;
     const d = enter(depth);
-    if (Array.isArray(x)) return x.map((e) => node(e, d));
+    if (Array.isArray(x)) {
+      const arr = new Array<unknown>(x.length);
+      fill(arr, x, d);
+      return arr;
+    }
     const o = x as JsonObject;
     const out: JsonObject = {};
     for (const k of Object.keys(o)) setOwn(out, k, node(o[k], d));

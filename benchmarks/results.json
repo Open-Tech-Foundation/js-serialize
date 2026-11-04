@@ -81,11 +81,11 @@
           "pass",
           "pass",
           "pass",
-          "throws",
-          "fail",
+          "pass",
+          "pass",
           "pass"
         ],
-        "score": 26
+        "score": 28
       },
       {
         "lib": "superjson",
@@ -350,33 +350,33 @@
           "rows": [
             {
               "lib": "@opentf/serialize",
-              "opsPerSec": 126286,
-              "meanMs": 0.007918535215256846,
-              "rme": 0.55
+              "opsPerSec": 135894,
+              "meanMs": 0.007358677251098129,
+              "rme": 0.3
             },
             {
               "lib": "superjson",
-              "opsPerSec": 53160,
-              "meanMs": 0.01881127265861042,
-              "rme": 0.76
+              "opsPerSec": 53343,
+              "meanMs": 0.01874670571010237,
+              "rme": 0.38
             },
             {
               "lib": "devalue",
-              "opsPerSec": 180737,
-              "meanMs": 0.0055329021903323455,
-              "rme": 0.69
+              "opsPerSec": 185374,
+              "meanMs": 0.005394491215226851,
+              "rme": 0.37
             },
             {
               "lib": "seroval",
-              "opsPerSec": 192620,
-              "meanMs": 0.005191571469033233,
-              "rme": 0.84
+              "opsPerSec": 199268,
+              "meanMs": 0.005018370241581232,
+              "rme": 0.39
             },
             {
               "lib": "@ungap/structured-clone",
-              "opsPerSec": 163425,
-              "meanMs": 0.0061190167107251356,
-              "rme": 0.72
+              "opsPerSec": 163472,
+              "meanMs": 0.0061172675695461065,
+              "rme": 0.41
             }
           ]
         },
@@ -385,33 +385,33 @@
           "rows": [
             {
               "lib": "@opentf/serialize",
-              "opsPerSec": 160250,
-              "meanMs": 0.006240258755201177,
-              "rme": 0.35
+              "opsPerSec": 159406,
+              "meanMs": 0.006273284313725719,
+              "rme": 0.44
             },
             {
               "lib": "superjson",
-              "opsPerSec": 168922,
-              "meanMs": 0.0059199029126214605,
-              "rme": 0.41
+              "opsPerSec": 165938,
+              "meanMs": 0.006026358981092487,
+              "rme": 0.47
             },
             {
               "lib": "devalue",
-              "opsPerSec": 241633,
-              "meanMs": 0.004138512049237106,
-              "rme": 0.52
+              "opsPerSec": 241824,
+              "meanMs": 0.00413524159663861,
+              "rme": 0.42
             },
             {
               "lib": "seroval",
-              "opsPerSec": 111267,
-              "meanMs": 0.008987387309292619,
-              "rme": 0.46
+              "opsPerSec": 111388,
+              "meanMs": 0.00897759103641489,
+              "rme": 0.44
             },
             {
               "lib": "@ungap/structured-clone",
-              "opsPerSec": 159091,
-              "meanMs": 0.0062856926144244755,
-              "rme": 0.45
+              "opsPerSec": 156489,
+              "meanMs": 0.0063902201505601185,
+              "rme": 0.43
             }
           ]
         }
@@ -425,39 +425,39 @@
           "rows": [
             {
               "lib": "@opentf/serialize",
-              "opsPerSec": 1404,
-              "meanMs": 0.712266666666718,
-              "rme": 0.8
+              "opsPerSec": 1443,
+              "meanMs": 0.6930465949821103,
+              "rme": 1.3
             },
             {
               "lib": "superjson",
-              "opsPerSec": 216,
-              "meanMs": 4.6226666666666985,
-              "rme": 0.35
+              "opsPerSec": 212,
+              "meanMs": 4.7207849462365665,
+              "rme": 0.69
             },
             {
               "lib": "devalue",
-              "opsPerSec": 597,
-              "meanMs": 1.6752807017543858,
-              "rme": 0.79
+              "opsPerSec": 577,
+              "meanMs": 1.7335053763440473,
+              "rme": 1.09
             },
             {
               "lib": "seroval",
-              "opsPerSec": 773,
-              "meanMs": 1.2929122807017879,
-              "rme": 0.38
+              "opsPerSec": 744,
+              "meanMs": 1.3443906810035844,
+              "rme": 1.56
             },
             {
               "lib": "@ungap/structured-clone",
-              "opsPerSec": 627,
-              "meanMs": 1.5954140350877104,
-              "rme": 0.9
+              "opsPerSec": 621,
+              "meanMs": 1.6109032258064875,
+              "rme": 1.13
             },
             {
               "lib": "JSON",
-              "opsPerSec": 6201,
-              "meanMs": 0.16127280701753238,
-              "rme": 0.31
+              "opsPerSec": 6078,
+              "meanMs": 0.16452777777777722,
+              "rme": 2.12
             }
           ]
         },
@@ -466,39 +466,39 @@
           "rows": [
             {
               "lib": "@opentf/serialize",
-              "opsPerSec": 1489,
-              "meanMs": 0.6716457399102937,
-              "rme": 1.09
+              "opsPerSec": 1585,
+              "meanMs": 0.6307601809954552,
+              "rme": 0.56
             },
             {
               "lib": "superjson",
-              "opsPerSec": 3096,
-              "meanMs": 0.3230414798206444,
-              "rme": 0.77
+              "opsPerSec": 3145,
+              "meanMs": 0.31794909502262547,
+              "rme": 0.49
             },
             {
               "lib": "devalue",
-              "opsPerSec": 1075,
-              "meanMs": 0.9300941704035754,
-              "rme": 0.49
+              "opsPerSec": 1085,
+              "meanMs": 0.9217895927601903,
+              "rme": 0.48
             },
             {
               "lib": "seroval",
               "opsPerSec": 472,
-              "meanMs": 2.1172533632286914,
-              "rme": 0.31
+              "meanMs": 2.1186040723982247,
+              "rme": 0.53
             },
             {
               "lib": "@ungap/structured-clone",
-              "opsPerSec": 584,
-              "meanMs": 1.713603139013473,
-              "rme": 0.56
+              "opsPerSec": 545,
+              "meanMs": 1.8337737556561504,
+              "rme": 1.15
             },
             {
               "lib": "JSON",
-              "opsPerSec": 3080,
-              "meanMs": 0.32465582959639505,
-              "rme": 0.72
+              "opsPerSec": 3122,
+              "meanMs": 0.3203325791855337,
+              "rme": 0.59
             }
           ]
         }
@@ -512,33 +512,33 @@
           "rows": [
             {
               "lib": "@opentf/serialize",
-              "opsPerSec": 409,
-              "meanMs": 2.4463237410072254,
-              "rme": 0.48
+              "opsPerSec": 397,
+              "meanMs": 2.521833333333399,
+              "rme": 3.13
             },
             {
               "lib": "superjson",
-              "opsPerSec": 113,
-              "meanMs": 8.846633093525107,
-              "rme": 0.82
+              "opsPerSec": 108,
+              "meanMs": 9.287340909090924,
+              "rme": 1.07
             },
             {
               "lib": "devalue",
-              "opsPerSec": 436,
-              "meanMs": 2.292762589928041,
-              "rme": 0.93
+              "opsPerSec": 409,
+              "meanMs": 2.44606818181826,
+              "rme": 3.09
             },
             {
               "lib": "seroval",
-              "opsPerSec": 517,
-              "meanMs": 1.9351870503596467,
-              "rme": 0.51
+              "opsPerSec": 503,
+              "meanMs": 1.986287878787855,
+              "rme": 1.56
             },
             {
               "lib": "@ungap/structured-clone",
-              "opsPerSec": 393,
-              "meanMs": 2.5440863309353214,
-              "rme": 0.87
+              "opsPerSec": 370,
+              "meanMs": 2.6991363636363914,
+              "rme": 3.53
             }
           ]
         },
@@ -547,33 +547,33 @@
           "rows": [
             {
               "lib": "@opentf/serialize",
-              "opsPerSec": 373,
-              "meanMs": 2.6805868544601115,
-              "rme": 1.44
+              "opsPerSec": 387,
+              "meanMs": 2.5834158878505122,
+              "rme": 0.9
             },
             {
               "lib": "superjson",
-              "opsPerSec": 325,
-              "meanMs": 3.0805868544599786,
-              "rme": 1.46
+              "opsPerSec": 317,
+              "meanMs": 3.159000000000127,
+              "rme": 0.59
             },
             {
               "lib": "devalue",
-              "opsPerSec": 695,
-              "meanMs": 1.4395868544600836,
-              "rme": 1.31
+              "opsPerSec": 692,
+              "meanMs": 1.4460186915889395,
+              "rme": 0.93
             },
             {
               "lib": "seroval",
-              "opsPerSec": 413,
-              "meanMs": 2.423647887323931,
-              "rme": 0.51
+              "opsPerSec": 419,
+              "meanMs": 2.388341121495189,
+              "rme": 0.2
             },
             {
               "lib": "@ungap/structured-clone",
-              "opsPerSec": 466,
-              "meanMs": 2.1452347417840607,
-              "rme": 1.88
+              "opsPerSec": 474,
+              "meanMs": 2.1097289719625145,
+              "rme": 0.98
             }
           ]
         }

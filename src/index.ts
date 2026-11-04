@@ -17,11 +17,11 @@ import { hasOwn, limit, SerializeError } from "./utils";
  * Plain data stays readable JSON. Special values become `"@n"` tokens whose
  * real type lives in the `$refs` table: `Date`, `RegExp`, `Map`, `Set`, typed
  * arrays, `ArrayBuffer`, `DataView`, `Error`, `URL`, `BigInt`, boxed
- * primitives, `Temporal`, `NaN`/`±Infinity`/`-0` and `undefined`. Circular
- * references and shared identity among plain objects and arrays are kept.
+ * primitives, `Temporal`, `NaN`/`±Infinity`/`-0` and `undefined`. Cycles and
+ * shared identity are kept through objects, arrays, `Map`, `Set` and `Error`,
+ * and sparse arrays keep their holes.
  *
- * Throws `SerializeError` on symbols, functions, class instances and cycles
- * that run through a `Map`, `Set` or `Error`.
+ * Throws `SerializeError` on symbols, functions and class instances.
  */
 export function stringify(value: unknown, options?: StringifyOptions): string {
   const enc = createEncoder(options);

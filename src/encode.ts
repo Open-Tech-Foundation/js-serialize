@@ -1,4 +1,4 @@
-import type { Refs, StringifyOptions } from "./types";
+import type { RefEntry, Refs, StringifyOptions } from "./types";
 import {
   bytesToB64,
   isPlainObject,
@@ -28,7 +28,6 @@ export interface Encoder {
 export function createEncoder(options: StringifyOptions = {}): Encoder {
   const maxDepth = limit("maxDepth", options.maxDepth);
   const refs: Refs = {};
-  const seen = new Set<object>();
   let count = 0;
 
   const enter = (depth: number): number => {
@@ -44,33 +43,27 @@ export function createEncoder(options: StringifyOptions = {}): Encoder {
     return `@${key}`;
   };
 
-  // Pass 1: find plain containers reachable by more than one edge (shared or
-  // cyclic). Only those are hoisted into $refs; single-use containers stay
-  // inline so the common case keeps its readable JSON shape.
+  // Pass 1: find objects reachable by more than one edge (shared or cyclic).
+  // Only those are hoisted into $refs under one id; single-use plain containers
+  // stay inline, so the common case keeps its readable JSON shape, and
+  // single-use special values keep the exact output obj-diff 0.18 wrote.
   const walked = new Set<object>();
   const shared = new Set<object>();
   const mark = (x: unknown, depth = 0): void => {
     if (x === null || typeof x !== "object") return;
     const obj = x as object;
-    if (isPlainContainer(obj)) {
-      if (walked.has(obj)) {
-        shared.add(obj);
-        return;
-      }
-      walked.add(obj);
-      const d = enter(depth);
-      if (Array.isArray(obj)) {
-        for (const e of obj) mark(e, d);
-      } else {
-        const o = obj as Record<string, unknown>;
-        for (const k of Object.keys(o)) mark(o[k], d);
-      }
+    if (walked.has(obj)) {
+      shared.add(obj);
       return;
     }
-    // Special containers: guard cycles while scanning for nested shared values.
-    if (walked.has(obj)) return;
     walked.add(obj);
-    if (obj instanceof Map) {
+    if (Array.isArray(obj)) {
+      const d = enter(depth);
+      for (const e of obj) mark(e, d);
+    } else if (isPlainObject(obj)) {
+      const d = enter(depth);
+      for (const k of Object.keys(obj)) mark(obj[k], d);
+    } else if (obj instanceof Map) {
       const d = enter(depth);
       for (const [k, v] of obj) {
         mark(k, d);
@@ -86,16 +79,82 @@ export function createEncoder(options: StringifyOptions = {}): Encoder {
     }
   };
 
-  // Pass 2: identity table for hoisted plain containers.
+  // Pass 2: identity table for hoisted objects.
   const idOf = new Map<object, string>();
+
+  // Holes in sparse arrays all point at one shared `hole` entry.
+  let holeToken: string | undefined;
+  const hole = (): string => {
+    holeToken ??= ref("hole");
+    return holeToken;
+  };
 
   const encodeContainer = (obj: object, depth: number): unknown => {
     const d = enter(depth);
-    if (Array.isArray(obj)) return obj.map((e) => node(e, d));
+    if (Array.isArray(obj)) {
+      const out = new Array<unknown>(obj.length);
+      for (let i = 0; i < obj.length; i++) out[i] = i in obj ? node(obj[i], d) : hole();
+      return out;
+    }
     const o = obj as Record<string, unknown>;
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(o)) setOwn(out, k, node(o[k], d));
     return out;
+  };
+
+  /** The `$refs` entry for a non-plain object; its children are encoded through `node`. */
+  const special = (obj: object, depth: number): RefEntry => {
+    const entry = (_t: string, _v?: unknown): RefEntry => (_v === undefined ? { _t } : { _t, _v });
+    if (obj instanceof Date) {
+      return entry("Date", Number.isNaN(obj.getTime()) ? "NaN" : obj.toISOString());
+    }
+    if (obj instanceof RegExp) return entry("RegExp", [obj.source, obj.flags]);
+    if (typeof URL !== "undefined" && obj instanceof URL) return entry("URL", obj.href);
+    if (obj instanceof Map) {
+      const d = enter(depth);
+      return entry(
+        "Map",
+        [...obj].map(([k, v]) => [node(k, d), node(v, d)]),
+      );
+    }
+    if (obj instanceof Set) {
+      const d = enter(depth);
+      return entry(
+        "Set",
+        [...obj].map((v) => node(v, d)),
+      );
+    }
+    if (isTypedArray(obj)) {
+      // The internal [[TypedArrayName]], so subclasses (e.g. Node's Buffer)
+      // encode under their base tag rather than an undecodable class name.
+      const tag = Object.prototype.toString.call(obj).slice(8, -1);
+      return entry(tag, bytesToB64(new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength)));
+    }
+    if (obj instanceof ArrayBuffer) return entry("ArrayBuffer", bytesToB64(new Uint8Array(obj)));
+    if (obj instanceof DataView) {
+      return entry(
+        "DataView",
+        bytesToB64(new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength)),
+      );
+    }
+    if (obj instanceof Error) {
+      const d = enter(depth);
+      const src = obj as unknown as Record<string, unknown>;
+      const own: Record<string, unknown> = {};
+      for (const k of Object.keys(obj)) setOwn(own, k, node(src[k], d));
+      return entry("Error", { name: obj.name, message: obj.message, own });
+    }
+    if (obj instanceof Number) return entry("Number", node(obj.valueOf(), depth));
+    if (obj instanceof String) return entry("String", obj.valueOf());
+    if (obj instanceof Boolean) return entry("Boolean", obj.valueOf());
+
+    const tn = temporalName(obj);
+    if (tn) return entry(tn, (obj as { toString(): string }).toString());
+
+    throw new SerializeError(
+      "UNSUPPORTED_VALUE",
+      "unsupported value (class instance or exotic object)",
+    );
   };
 
   // Returns a JSON-safe node: a primitive, array, plain object, or a "@n" token.
@@ -132,84 +191,24 @@ export function createEncoder(options: StringifyOptions = {}): Encoder {
 
     const obj = x as object;
 
-    // Plain containers: hoist into $refs when shared/cyclic (referenced by
-    // token so identity and cycles survive), otherwise inline as readable JSON.
-    if (isPlainContainer(obj)) {
-      if (shared.has(obj)) {
-        const existing = idOf.get(obj);
-        if (existing !== undefined) return `@${existing}`;
-        const key = String(++count);
-        idOf.set(obj, key);
-        const encoded = encodeContainer(obj, depth);
-        refs[key] = { _t: Array.isArray(obj) ? "arr" : "obj", _v: encoded };
-        return `@${key}`;
-      }
-      return encodeContainer(obj, depth);
+    // Shared or cyclic: claim the id *before* encoding the children, so a child
+    // that leads back here (a Map holding itself, an Error whose cause points
+    // back) gets the same token instead of recursing forever.
+    if (shared.has(obj)) {
+      const existing = idOf.get(obj);
+      if (existing !== undefined) return `@${existing}`;
+      const key = String(++count);
+      idOf.set(obj, key);
+      refs[key] = isPlainContainer(obj)
+        ? { _t: Array.isArray(obj) ? "arr" : "obj", _v: encodeContainer(obj, depth) }
+        : special(obj, depth);
+      return `@${key}`;
     }
 
-    // Special containers can still form cycles (a Map holding itself); guard
-    // those so stringify throws instead of recursing forever.
-    if (seen.has(obj)) {
-      throw new SerializeError(
-        "CIRCULAR_REF",
-        "circular references through Map, Set or Error are not serializable",
-      );
-    }
-    seen.add(obj);
-    try {
-      if (obj instanceof Date) {
-        return ref("Date", Number.isNaN(obj.getTime()) ? "NaN" : obj.toISOString());
-      }
-      if (obj instanceof RegExp) return ref("RegExp", [obj.source, obj.flags]);
-      if (typeof URL !== "undefined" && obj instanceof URL) return ref("URL", obj.href);
-      if (obj instanceof Map) {
-        const d = enter(depth);
-        return ref(
-          "Map",
-          [...obj].map(([k, v]) => [node(k, d), node(v, d)]),
-        );
-      }
-      if (obj instanceof Set) {
-        const d = enter(depth);
-        return ref(
-          "Set",
-          [...obj].map((v) => node(v, d)),
-        );
-      }
-      if (isTypedArray(obj)) {
-        // The internal [[TypedArrayName]], so subclasses (e.g. Node's Buffer)
-        // encode under their base tag rather than an undecodable class name.
-        const tag = Object.prototype.toString.call(obj).slice(8, -1);
-        return ref(tag, bytesToB64(new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength)));
-      }
-      if (obj instanceof ArrayBuffer) return ref("ArrayBuffer", bytesToB64(new Uint8Array(obj)));
-      if (obj instanceof DataView) {
-        return ref(
-          "DataView",
-          bytesToB64(new Uint8Array(obj.buffer, obj.byteOffset, obj.byteLength)),
-        );
-      }
-      if (obj instanceof Error) {
-        const d = enter(depth);
-        const src = obj as unknown as Record<string, unknown>;
-        const own: Record<string, unknown> = {};
-        for (const k of Object.keys(obj)) setOwn(own, k, node(src[k], d));
-        return ref("Error", { name: obj.name, message: obj.message, own });
-      }
-      if (obj instanceof Number) return ref("Number", node(obj.valueOf(), depth));
-      if (obj instanceof String) return ref("String", obj.valueOf());
-      if (obj instanceof Boolean) return ref("Boolean", obj.valueOf());
-
-      const tn = temporalName(obj);
-      if (tn) return ref(tn, (obj as { toString(): string }).toString());
-
-      throw new SerializeError(
-        "UNSUPPORTED_VALUE",
-        "unsupported value (class instance or exotic object)",
-      );
-    } finally {
-      seen.delete(obj);
-    }
+    if (isPlainContainer(obj)) return encodeContainer(obj, depth);
+    // Single use: children first, then this entry — the id order obj-diff 0.18 wrote.
+    const { _t, _v } = special(obj, depth);
+    return ref(_t, _v);
   };
 
   return { mark, node, refs, hasRefs: () => count > 0 };

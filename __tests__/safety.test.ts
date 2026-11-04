@@ -109,24 +109,25 @@ describe("clear errors for malformed input", () => {
     expect(one("arr", {})).toBe("INVALID_PAYLOAD");
   });
 
-  test("a self-referencing Map/Set in the input throws instead of overflowing the stack", () => {
-    expect(codeOf(() => parse('{"v":"@1","$refs":{"1":{"_t":"Map","_v":[["k","@1"]]}}}'))).toBe(
+  test("a leaf entry that refers to itself throws CIRCULAR_REF, not a stack overflow", () => {
+    expect(codeOf(() => parse('{"v":"@1","$refs":{"1":{"_t":"Number","_v":"@1"}}}'))).toBe(
       "CIRCULAR_REF",
     );
+  });
+
+  test("a hole token outside an array element is rejected", () => {
+    const hole = '"$refs":{"1":{"_t":"hole"}}';
+    expect(codeOf(() => parse(`{"v":"@1",${hole}}`))).toBe("INVALID_PAYLOAD");
+    expect(codeOf(() => parse(`{"v":{"a":"@1"},${hole}}`))).toBe("INVALID_PAYLOAD");
     expect(
-      codeOf(() =>
-        parse('{"v":"@1","$refs":{"1":{"_t":"Set","_v":["@2"]},"2":{"_t":"Set","_v":["@1"]}}}'),
-      ),
-    ).toBe("CIRCULAR_REF");
+      codeOf(() => parse(`{"v":"@2",${hole.slice(0, -1)},"2":{"_t":"Set","_v":["@1"]}}}`)),
+    ).toBe("INVALID_PAYLOAD");
   });
 
   test("stringify errors are SerializeErrors with codes", () => {
     expect(codeOf(() => stringify(Symbol("s")))).toBe("UNSUPPORTED_VALUE");
     class Widget {}
     expect(codeOf(() => stringify(new Widget()))).toBe("UNSUPPORTED_VALUE");
-    const s = new Set<unknown>();
-    s.add(s);
-    expect(codeOf(() => stringify(s))).toBe("CIRCULAR_REF");
   });
 });
 

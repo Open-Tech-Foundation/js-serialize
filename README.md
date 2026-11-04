@@ -52,13 +52,12 @@ value.at.getFullYear(); // a live Date again
 | **Wrong-shape input** | Throws | Returns `undefined` | Throws | Throws | Throws |
 | **Depth limit** | `maxDepth` (opt-in) | None | None | `depthLimit` (1000) | None |
 | **Input size limit** | `maxLength` (opt-in) | None | None | None | None |
-| **Cycles through `Map`/`Set`** | No (throws) | Yes | Yes | Yes | Yes |
+| **Cycles through `Map`/`Set`** | Yes | Yes | Yes | Yes | Yes |
 | **Custom classes** | No | `registerClass` | reducers / revivers | Plugins | No |
 | **Runtime dependencies** | 0 | 1 | 0 | 0 | 0 |
 
-Serialize trades a little speed for a format you can read and a parser you can point at
-a request body. When you need custom classes, or values that cycle through a `Map`, use
-seroval or devalue.
+Serialize trades a little speed and size for a format you can read and a parser you can
+point at a request body. When you need custom classes, use seroval or devalue.
 
 ### Measured
 
@@ -99,10 +98,10 @@ type, value, keys and identity. ✅ exact · ❌ different value or type · 💥
 | Shared reference | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Circular object | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Circular array | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cycle through a Map | 💥 | ✅ | ✅ | ✅ | ✅ |
-| Sparse array | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Cycle through a Map | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Sparse array | ✅ | ❌ | ✅ | ✅ | ❌ |
 | Own __proto__ key | ✅ | 💥 | 💥 | ✅ | ✅ |
-| **Score** | **26/28** | **16/28** | **26/28** | **27/28** | **19/28** |
+| **Score** | **28/28** | **16/28** | **26/28** | **27/28** | **19/28** |
 
 #### Malformed input
 
@@ -134,32 +133,32 @@ UTF-8 bytes of the output; smallest in bold.
 
 | Library | `stringify` | `parse` |
 | --- | --- | --- |
-| **@opentf/serialize** | 126,286 | 160,250 |
-| superjson | 53,160 | 168,922 |
-| devalue | 180,737 | **241,633** |
-| seroval | **192,620** | 111,267 |
-| @ungap/structured-clone | 163,425 | 159,091 |
+| **@opentf/serialize** | 135,894 | 159,406 |
+| superjson | 53,343 | 165,938 |
+| devalue | 185,374 | **241,824** |
+| seroval | **199,268** | 111,388 |
+| @ungap/structured-clone | 163,472 | 156,489 |
 
 **1,000 plain rows** (ops/sec, higher is better)
 
 | Library | `stringify` | `parse` |
 | --- | --- | --- |
-| **@opentf/serialize** | 1,404 | 1,489 |
-| superjson | 216 | **3,096** |
-| devalue | 597 | 1,075 |
-| seroval | 773 | 472 |
-| @ungap/structured-clone | 627 | 584 |
-| JSON | **6,201** | 3,080 |
+| **@opentf/serialize** | 1,443 | 1,585 |
+| superjson | 212 | **3,145** |
+| devalue | 577 | 1,085 |
+| seroval | 744 | 472 |
+| @ungap/structured-clone | 621 | 545 |
+| JSON | **6,078** | 3,122 |
 
 **1,000 typed rows** (ops/sec, higher is better)
 
 | Library | `stringify` | `parse` |
 | --- | --- | --- |
-| **@opentf/serialize** | 409 | 373 |
-| superjson | 113 | 325 |
-| devalue | 436 | **695** |
-| seroval | **517** | 413 |
-| @ungap/structured-clone | 393 | 466 |
+| **@opentf/serialize** | 397 | 387 |
+| superjson | 108 | 317 |
+| devalue | 409 | **692** |
+| seroval | **503** | 419 |
+| @ungap/structured-clone | 370 | 474 |
 <!-- bench:end -->
 
 ## Built for
@@ -188,10 +187,10 @@ npm install @opentf/serialize   # or: bun add, deno add jsr:@opentf/serialize
 | **Errors** | `Error` and its standard subclasses, with `name`, `message` and own properties |
 | **Binary** | Every typed array, `ArrayBuffer`, `DataView` — byte-exact, as base64 |
 | **Temporal** | Any `Temporal.*` value; decoding needs `globalThis.Temporal` |
-| **Graphs** | Cycles and shared identity among plain objects and arrays |
+| **Graphs** | Cycles and shared identity through objects, arrays, `Map`, `Set` and `Error`; any value used twice decodes to one object |
+| **Sparse arrays** | Holes stay holes, distinct from `undefined` and `null` |
 
-Symbols, functions and class instances throw, as do cycles that run through a `Map`,
-`Set` or `Error`. Holes in sparse arrays come back as `null`, as with `JSON`.
+Symbols, functions and class instances throw.
 
 ## Wire format
 
@@ -202,7 +201,8 @@ Symbols, functions and class instances throw, as do cycles that run through a `M
 | **Plain data** | Written as ordinary JSON. User keys named `_t` / `_v` are just data. |
 | **Special values** | Replaced by a token `"@n"`; `$refs["n"]` holds `{ "_t": <type>, "_v": <payload> }`. |
 | **Strings starting with `@`** | Escaped with one more `@`, so they never read as tokens. |
-| **Shared or cyclic containers** | Hoisted into `$refs` as an `obj` / `arr` entry and referenced by token; single-use ones stay inline. |
+| **Shared or cyclic values** | Written once in `$refs` (plain containers as an `obj` / `arr` entry) and referenced by token everywhere; single-use plain containers stay inline. |
+| **Array holes** | Every hole is a token for one shared `{"_t":"hole"}` entry. |
 | **No special values** | No `$refs` key at all: `{"v":{"a":1}}`. |
 
 ## Untrusted input
@@ -239,7 +239,7 @@ Every failure is a `SerializeError` (a subclass of `Error`) whose `code` is one 
 | `MISSING_REF` | A `"@n"` token with no `$refs` entry |
 | `UNKNOWN_TYPE` | An unrecognised `_t` tag |
 | `INVALID_PAYLOAD` | An entry's `_v` is the wrong shape for its type |
-| `CIRCULAR_REF` | A cycle through `Map` / `Set` / `Error`, in either direction |
+| `CIRCULAR_REF` | A forged entry that refers to itself where no cycle is possible (e.g. a boxed `Number`) |
 | `UNSUPPORTED_VALUE` | A symbol, function or class instance given to `stringify` |
 | `TEMPORAL_UNAVAILABLE` | Temporal data, but no `globalThis.Temporal` |
 | `INVALID_OPTION` | A limit that is not a non-negative integer or `Infinity` |
