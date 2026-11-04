@@ -1,0 +1,37 @@
+adapters = ["npm"]
+tag_format = "v{version}"
+provider = "github"
+default_branch = "main"
+changelog_strategy = "curated"
+changelog_scope = "root"
+github_release_notes = "curated-changelog"
+
+[hooks]
+
+[publish.ignore_paths]
+"@opentf/serialize" = [
+    "**/*.md",
+    "**/__tests__/**",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/test/**",
+    "**/tests/**",
+]
+
+# esdev builds the package; the publish job needs it before `command` runs.
+[[setup]]
+jobs = ["publish"]
+run = [
+    "curl -fsSL https://raw.githubusercontent.com/Open-Tech-Foundation/ES-Runtime/main/install.sh | bash -s -- --only=esdev",
+    'echo "$HOME/.es-runtime/bin" >> "$GITHUB_PATH"',
+]
+
+[[package]]
+name = "@opentf/serialize"
+adapter = "npm"
+mode = "publish"
+matrix = false
+command = "esdev build --target=library"
+artifacts = ""
+manifest = "package.json"
+provenance = true

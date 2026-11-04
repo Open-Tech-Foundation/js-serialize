@@ -1,0 +1,125 @@
+# Generated from release.toml by `release` · sha256:a1939b0ce5d05cdcc1b5eb8c5a0aecffa21b3dfcb1b7f1125112acd0b6c0e383
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write  # create tags and GitHub Releases
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      release_opentf_serialize: ${{ steps.check.outputs.release_opentf_serialize }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install release
+        shell: bash
+        env:
+          OTF_RELEASE_VERSION: v0.42.0
+        run: curl -fsSL https://raw.githubusercontent.com/Open-Tech-Foundation/release/v0.42.0/install.sh | bash
+      - name: Expose release command
+        shell: bash
+        run: |
+          if ! command -v release >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/release-cli"
+            cp "$(command -v otf-release)" "$RUNNER_TEMP/release-cli/release"
+            echo "$RUNNER_TEMP/release-cli" >> "$GITHUB_PATH"
+          fi
+      - id: check
+        run: |
+          echo "should_release=$(release check --exclude-package @opentf/serialize)" >> "$GITHUB_OUTPUT"
+          echo "release_opentf_serialize=$(release check --package @opentf/serialize)" >> "$GITHUB_OUTPUT"
+
+  publish-opentf-serialize:
+    needs: [check-release]
+    if: needs.check-release.outputs.release_opentf_serialize == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: Setup
+        shell: bash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/Open-Tech-Foundation/ES-Runtime/main/install.sh | bash -s -- --only=esdev
+          echo "$HOME/.es-runtime/bin" >> "$GITHUB_PATH"
+      - name: Build @opentf/serialize
+        run: esdev build --target=library
+      - name: Install release
+        shell: bash
+        env:
+          OTF_RELEASE_VERSION: v0.42.0
+        run: curl -fsSL https://raw.githubusercontent.com/Open-Tech-Foundation/release/v0.42.0/install.sh | bash
+      - name: Expose release command
+        shell: bash
+        run: |
+          if ! command -v release >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/release-cli"
+            cp "$(command -v otf-release)" "$RUNNER_TEMP/release-cli/release"
+            echo "$RUNNER_TEMP/release-cli" >> "$GITHUB_PATH"
+          fi
+      - name: Publish
+        run: release publish --package @opentf/serialize
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: [check-release, publish-opentf-serialize]
+    if: >-
+      always() &&
+      needs.check-release.outputs.should_release == 'true' &&
+      needs.publish-opentf-serialize.result != 'failure' &&
+      needs.publish-opentf-serialize.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: Install release
+        shell: bash
+        env:
+          OTF_RELEASE_VERSION: v0.42.0
+        run: curl -fsSL https://raw.githubusercontent.com/Open-Tech-Foundation/release/v0.42.0/install.sh | bash
+      - name: Expose release command
+        shell: bash
+        run: |
+          if ! command -v release >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/release-cli"
+            cp "$(command -v otf-release)" "$RUNNER_TEMP/release-cli/release"
+            echo "$RUNNER_TEMP/release-cli" >> "$GITHUB_PATH"
+          fi
+      - name: Setup
+        shell: bash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/Open-Tech-Foundation/ES-Runtime/main/install.sh | bash -s -- --only=esdev
+          echo "$HOME/.es-runtime/bin" >> "$GITHUB_PATH"
+      - name: Publish
+        run: release publish --exclude-package @opentf/serialize
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
